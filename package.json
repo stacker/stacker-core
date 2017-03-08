@@ -1,8 +1,17 @@
 {
   "name": "stacker-core",
+  "repository": "StackerHQ/stacker-core",
   "version": "0.1.0",
-  "description": "Stacker Core",
   "license": "MIT",
+  "description": "Stacker Core",
+  "keywords": [
+    "stacker",
+    "stacker-core"
+  ],
+  "authors": [
+    "Andrei Canta <andrei@hexbridge.com>",
+    "Kinga Iakab <kinga@hexbridge.com>"
+  ],
   "main": "dist/index.js",
   "scripts": {
     "build": "babel src --out-dir dist",
