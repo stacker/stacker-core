@@ -27,7 +27,10 @@ export default class StackManager {
     }
   }
   async loadLink() {
-    if (!this.link) this.link = await Links.find({ path: this.getProjectPath() });
+    if (!this.link) {
+      const projectPath = this.getProjectPath();
+      this.link = await Links.find({ projectPath });
+    }
 
     return this.link;
   }

@@ -6,7 +6,12 @@ import { localBinaryPath } from './utils/paths';
 const hostilePath = localBinaryPath('hostile');
 
 function exec(commands) {
-  return sudo.exec(`sh -c "${commands.join('; ')}"`, { name: 'Stacker' });
+  return new Promise((resolve, reject) => {
+    sudo.exec(`sh -c "${commands.join('; ')}"`, { name: 'Stacker' }, (error, stdout, stderr) => {
+      if (error) reject(error, stderr);
+      resolve(stdout, stderr);
+    });
+  });
 }
 
 function create(ip, host) {
