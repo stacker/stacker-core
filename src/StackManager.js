@@ -3,7 +3,7 @@ import fs from 'fs-promise';
 import LaravelStack from './templates/laravel/LaravelStack';
 import { saveYaml, saveFile, fileExists } from './utils/storage';
 import { defaultBuildPath, dockerComposePath, dockerFilePath, ejectFilePath } from './utils/paths';
-import { exec, omitEmptyValues } from './utils/misc';
+import { exec, spawn, clean } from './utils/misc';
 import Links from './Links';
 
 
@@ -27,7 +27,10 @@ export default class StackManager {
     }
   }
   async loadLink() {
-    if (!this.link) this.link = await Links.find({ path: this.getProjectPath() });
+    if (!this.link) {
+      const projectPath = this.getProjectPath();
+      this.link = await Links.find({ projectPath });
+    }
 
     return this.link;
   }
@@ -71,13 +74,13 @@ export default class StackManager {
     return fs.ensureDir(this.getBuildPath());
   }
   execDocker(...args) {
-    const command = omitEmptyValues(args).join(' ');
+    const command = clean(args).join(' ');
 
     return exec(`docker ${command}`);
   }
   execDockerCompose(...args) {
     const file = dockerComposePath(this.getBuildPath());
-    const command = omitEmptyValues(args).join(' ');
+    const command = clean(args).join(' ');
 
     return exec(`docker-compose --file ${file} ${command}`);
   }
@@ -172,5 +175,18 @@ export default class StackManager {
     const localPath = ejectFilePath(projectPath, localFile);
 
     return this.execDocker(`cp --follow-link ${container}:${remotePath} ${localPath}`);
+  }
+
+  // shell
+
+  shell(serviceName) {
+    const file = dockerComposePath(this.getBuildPath());
+    const shell = this.stack.services.get(serviceName).shell;
+
+    if (shell) {
+      return spawn('docker-compose', ['--file', file, 'exec', serviceName, shell], { stdio: 'inherit' });
+    }
+
+    throw new Error('This service does not have any shell.');
   }
 }

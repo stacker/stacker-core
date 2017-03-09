@@ -7,6 +7,8 @@ export default class StackServiceEnv extends DataMap {
     this.service = service;
   }
   toDockerCompose() {
+    if (this.size() === 0) return null;
+
     return this.entries().map(entry => entry.join('='));
   }
 }

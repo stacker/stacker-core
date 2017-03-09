@@ -26,7 +26,8 @@ export default class LaravelStack extends Stack {
   }
   initLaravelService() {
     this.services.set('laravel', {
-      image: 'stacker-laravel',
+      image: 'stackerhq/laravel:latest',
+      shell: '/bin/zsh',
       env: {
         DB_DATABASE,
         DB_USERNAME,
@@ -35,6 +36,9 @@ export default class LaravelStack extends Stack {
       ports: {
         80: 80,
       },
+      volumes: [
+        '.:/app',
+      ],
     });
 
     this.runnables.set('nginx-restart', {
@@ -71,6 +75,7 @@ export default class LaravelStack extends Stack {
   initMysqlService() {
     this.services.set('database', {
       image: 'mysql:latest',
+      shell: '/bin/bash',
       env: {
         MYSQL_ROOT_PASSWORD: 'root',
         MYSQL_DATABASE: DB_DATABASE,
@@ -85,6 +90,7 @@ export default class LaravelStack extends Stack {
   initMariadbService() {
     this.services.set('database', {
       image: 'mariadb:latest',
+      shell: '/bin/bash',
       env: {
         MYSQL_ROOT_PASSWORD: 'root',
         MYSQL_DATABASE: DB_DATABASE,
@@ -99,6 +105,7 @@ export default class LaravelStack extends Stack {
   initPostgresService() {
     this.services.set('database', {
       image: 'postgres:latest',
+      shell: '/bin/bash',
       env: {
         POSTGRES_DB: DB_DATABASE,
         POSTGRES_USER: DB_USERNAME,
@@ -110,25 +117,34 @@ export default class LaravelStack extends Stack {
     laravelService.env.set('DB_CONNECTION', 'pgsql');
   }
   initRedisService() {
-    this.services.set('redis', {
-      image: 'redis:latest',
-    });
+    if (this.options.redis === true) {
+      this.services.set('redis', {
+        image: 'redis:latest',
+        shell: '/bin/bash',
+      });
 
-    const laravelService = this.services.get('laravel');
-    laravelService.env.set('REDIS_HOST', 'redis');
+      const laravelService = this.services.get('laravel');
+      laravelService.env.set('REDIS_HOST', 'redis');
+    }
   }
   initMemcachedService() {
-    this.services.set('memcached', {
-      image: 'memcached:latest',
-    });
+    if (this.options.memcached === true) {
+      this.services.set('memcached', {
+        image: 'memcached:latest',
+        shell: '/bin/bash',
+      });
+    }
   }
   initBeanstalkdService() {
-    this.services.set('beanstalkd', {
-      image: 'schickling/beanstalkd:latest',
-    });
+    if (this.options.beanstalkd === true) {
+      this.services.set('beanstalkd', {
+        image: 'schickling/beanstalkd:latest',
+        shell: '/bin/bash',
+      });
 
-    const laravelService = this.services.get('laravel');
-    laravelService.env.set('QUEUE_DRIVER', 'beanstalkd');
-    laravelService.env.set('QUEUE_HOST', 'beanstalkd');
+      const laravelService = this.services.get('laravel');
+      laravelService.env.set('QUEUE_DRIVER', 'beanstalkd');
+      laravelService.env.set('QUEUE_HOST', 'beanstalkd');
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { omitEmptyValues } from './utils/misc';
+import { clean } from './utils/misc';
 import StackServices from './stack/StackServices';
 import StackNetworks from './stack/StackNetworks';
 import StackVolumes from './stack/StackVolumes';
@@ -25,7 +25,7 @@ export default class Stack {
   async toDockerCompose(target, projectPath, ipAddress) {
     await this.ejectables.findEjectedFiles(projectPath);
 
-    return omitEmptyValues({
+    return clean({
       version: '3',
       services: this.services.toDockerCompose(target, projectPath, ipAddress),
       networks: this.networks.toDockerCompose(),

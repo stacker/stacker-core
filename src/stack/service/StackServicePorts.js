@@ -7,6 +7,8 @@ export default class StackServicePorts extends DataMap {
     this.service = service;
   }
   toDockerCompose(projectIp) {
+    if (this.size() === 0) return null;
+
     return this.entries().map((entry) => {
       const ports = entry.join(':');
       return projectIp ? `${projectIp}:${ports}` : ports;
