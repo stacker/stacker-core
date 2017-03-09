@@ -1,6 +1,6 @@
 import path from 'path';
 
-import { omitEmptyValues } from './utils/misc';
+import { clean } from './utils/misc';
 import { stackConfigPath } from './utils/paths';
 import { loadYaml, saveYaml } from './utils/storage';
 
@@ -36,7 +36,7 @@ export default class StackConfig {
   save(projectPath) {
     this.projectPath = projectPath;
 
-    return saveYaml(stackConfigPath(projectPath), omitEmptyValues({
+    return saveYaml(stackConfigPath(projectPath), clean({
       stack: this.stack,
       options: this.options,
       extra: this.extra,

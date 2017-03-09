@@ -1,6 +1,6 @@
 import { ejectFilePath, buildScriptPath } from '../utils/paths';
 import { fileExists } from '../utils/storage';
-import { omitEmptyValues } from '../utils/misc';
+import { clean } from '../utils/misc';
 import StackServiceEnv from './service/StackServiceEnv';
 import StackServicePorts from './service/StackServicePorts';
 import StackServiceVolumes from './service/StackServiceVolumes';
@@ -20,15 +20,19 @@ export default class StackService {
   merge(data) {
     if (data.name) this.name = data.name;
     if (data.image) this.image = data.image;
+    if (data.shell) this.shell = data.shell;
     if (data.env) this.env.merge(data.env);
     if (data.ports) this.ports.merge(data.ports);
     if (data.volumes) this.volumes.merge(data.volumes);
     if (data.networks) this.networks.merge(data.networks);
   }
   toDockerCompose(target, projectPath, ipAddress) {
-    return omitEmptyValues({
+    return clean({
       tty: true,
-      image: this.image,
+      build: {
+        context: '.',
+        dockerfile: `Dockerfile-${this.name}`,
+      },
       environment: this.env.toDockerCompose(),
       ports: this.ports.toDockerCompose(ipAddress),
       volumes: this.volumes.toDockerCompose(target, projectPath),

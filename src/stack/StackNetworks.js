@@ -7,6 +7,8 @@ export default class StackNetworks extends DataMap {
     this.stack = stack;
   }
   toDockerCompose() {
+    if (this.size() === 0) return null;
+
     return this.data();
   }
 }

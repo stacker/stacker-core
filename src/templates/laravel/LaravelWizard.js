@@ -1,6 +1,3 @@
-import { omitEmptyValues } from '../../utils/misc';
-
-
 function getQuestions() {
   return [
     {

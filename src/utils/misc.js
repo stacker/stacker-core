@@ -11,16 +11,10 @@ export function titleCase(input) {
     .join(' ');
 }
 
-export function omitEmptyValues(input) {
-  const isEmpty = value => value === null || value === undefined || value === '';
-
-  if (input instanceof Array) {
-    return _.filter(input, _.negate(isEmpty));
-  }
-  if (input instanceof Object) {
-    return _.omitBy(input, isEmpty);
-  }
-
+export function clean(input) {
+  const predicate = _.negate(_.isNil);
+  if (input instanceof Array) return _.filter(input, predicate);
+  if (input instanceof Object) return _.pickBy(input, predicate);
   return input;
 }
 
@@ -31,4 +25,8 @@ export function exec(command, options = {}) {
       resolve(stdout, stderr);
     });
   });
+}
+
+export function spawn(command, args = [], options = {}) {
+  return cp.spawn(command, args, options);
 }
