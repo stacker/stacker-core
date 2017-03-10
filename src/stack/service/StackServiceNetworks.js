@@ -7,6 +7,8 @@ export default class StackServiceNetworks extends DataSet {
     this.service = service;
   }
   toDockerCompose() {
-    return this.values();
+    if (this.size() === 0) return null;
+
+    return this.data();
   }
 }

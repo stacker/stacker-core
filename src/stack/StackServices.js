@@ -23,6 +23,8 @@ export default class StackServices extends DataMap {
     });
   }
   toDockerCompose(target, projectPath, ipAddress) {
+    if (this.size() === 0) return null;
+
     return this.mapValues(service => service.toDockerCompose(target, projectPath, ipAddress));
   }
 }

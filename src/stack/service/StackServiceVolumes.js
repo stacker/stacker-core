@@ -9,15 +9,16 @@ export default class StackServiceVolumes extends DataSet {
     this.service = service;
   }
   toDockerCompose(target, projectPath) {
+    let volumes = this.getPersistentVolumes();
+
     if (target === 'dev') {
-      return [
-        ...this.getPersistentVolumes(),
+      volumes = volumes.concat([
         ...this.getSyncedVolumes(projectPath).map(pair => pair.join(':')),
         ...this.service.getEjectedFiles(projectPath).map(pair => pair.join(':')),
-      ];
-    } else if (target === 'prod') {
-      return this.getPersistentVolumes();
+      ]);
     }
+
+    return volumes.length ? volumes : null;
   }
   getPersistentVolumes() {
     return this.values().filter(value => this.isVolumePersistent(value));
