@@ -151,10 +151,17 @@ export default class StackManager {
 
   // run
 
-  async run(runnableName) {
+  run(runnableName) {
     if (this.stack.runnables.has(runnableName)) {
       const runnable = this.stack.runnables.get(runnableName);
-      return this.spawnDockerCompose(['exec', runnable.service, runnable.exec]);
+      const serviceName = runnable.service;
+      const shell = this.stack.services.get(serviceName).shell;
+
+      if (shell) {
+        return this.spawnDockerCompose(['exec', serviceName, shell, '-c', runnable.exec]);
+      }
+
+      throw new Error('This service does not have any shell.');
     }
 
     throw new Error('Runnable not found.');
