@@ -154,7 +154,7 @@ export default class StackManager {
   async run(runnableName) {
     if (this.stack.runnables.has(runnableName)) {
       const runnable = this.stack.runnables.get(runnableName);
-      return this.spawn('exec', [runnable.service, runnable.exec]);
+      return this.spawnDockerCompose(['exec', runnable.service, runnable.exec]);
     }
 
     throw new Error('Runnable not found.');
