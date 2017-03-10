@@ -26,7 +26,7 @@ export default class LaravelStack extends Stack {
   }
   initLaravelService() {
     this.services.set('laravel', {
-      image: 'stackerhq/laravel:latest',
+      image: 'stacker/laravel:latest',
       shell: '/bin/zsh',
       env: {
         DB_DATABASE,
