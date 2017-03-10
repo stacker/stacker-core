@@ -84,6 +84,13 @@ export default class StackManager {
 
     return exec(`docker-compose --file ${file} ${command}`);
   }
+  spawnDockerCompose(args) {
+    const file = dockerComposePath(this.getBuildPath());
+    if (typeof args === 'string') args = [args];
+    args = clean(args);
+
+    return spawn('docker-compose', ['--file', file, ...args], { stdio: 'inherit' });
+  }
   async listContainers(serviceName = null) {
     const stdout = await this.execDockerCompose('ps -q', serviceName);
 
@@ -124,16 +131,22 @@ export default class StackManager {
     });
   }
 
-  // start, stop & restart
+  // up, down & start, stop & restart
 
-  start(serviceName = null) {
-    return this.execDockerCompose('up -d', serviceName);
+  up(background = false) {
+    return this.spawnDockerCompose(['up', background ? '-d' : null]);
   }
-  stop(serviceName = null) {
-    return this.execDockerCompose('down', serviceName);
+  down() {
+    return this.spawnDockerCompose('down');
+  }
+  start() {
+    return this.spawnDockerCompose('start');
+  }
+  stop() {
+    return this.spawnDockerCompose('stop');
   }
   restart(serviceName = null) {
-    return this.execDockerCompose('restart', serviceName);
+    return this.spawnDockerCompose(['restart', serviceName]);
   }
 
   // run
@@ -141,7 +154,7 @@ export default class StackManager {
   async run(runnableName) {
     if (this.stack.runnables.has(runnableName)) {
       const runnable = this.stack.runnables.get(runnableName);
-      return this.execDockerCompose('exec', runnable.service, runnable.exec);
+      return this.spawn('exec', [runnable.service, runnable.exec]);
     }
 
     throw new Error('Runnable not found.');
@@ -180,11 +193,10 @@ export default class StackManager {
   // shell
 
   shell(serviceName) {
-    const file = dockerComposePath(this.getBuildPath());
     const shell = this.stack.services.get(serviceName).shell;
 
     if (shell) {
-      return spawn('docker-compose', ['--file', file, 'exec', serviceName, shell], { stdio: 'inherit' });
+      return this.spawnDockerCompose(['exec', serviceName, shell]);
     }
 
     throw new Error('This service does not have any shell.');
