@@ -133,8 +133,8 @@ export default class StackManager {
 
   // up, down & start, stop & restart
 
-  up(background = false) {
-    return this.spawnDockerCompose(['up', background ? '-d' : null]);
+  up(detached = false) {
+    return this.spawnDockerCompose(['up', detached ? '-d' : null]);
   }
   down() {
     return this.spawnDockerCompose('down');
