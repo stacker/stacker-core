@@ -89,7 +89,13 @@ export default class StackManager {
     if (typeof args === 'string') args = [args];
     args = clean(args);
 
-    return spawn('docker-compose', ['--file', file, ...args], { stdio: 'inherit' });
+    const child = spawn('docker-compose', ['--file', file, ...args], { stdio: 'inherit' });
+
+    const exit = () => child.kill();
+    process.on('SIGINT', exit);
+    process.on('exit', exit);
+
+    return child;
   }
   async listContainers(serviceName = null) {
     const stdout = await this.execDockerCompose('ps -q', serviceName);
