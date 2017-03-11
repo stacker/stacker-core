@@ -2,7 +2,7 @@ import fs from 'fs-promise';
 
 import LaravelStack from './templates/laravel/LaravelStack';
 import { saveYaml, saveFile, fileExists } from './utils/storage';
-import { defaultBuildPath, dockerComposePath, dockerFilePath, ejectFilePath } from './utils/paths';
+import { buildFilesPath, dockerComposePath, dockerFilePath, ejectFilePath } from './utils/paths';
 import { exec, spawn, clean } from './utils/misc';
 import Links from './Links';
 
@@ -49,16 +49,6 @@ export default class StackManager {
   getProjectPath() {
     return this.config.projectPath;
   }
-  setBuildPath(buildPath) {
-    this.buildPath = buildPath;
-  }
-  getBuildPath() {
-    const projectPath = this.getProjectPath();
-
-    return this.buildPath
-      || this.config.buildPath
-      || defaultBuildPath(projectPath);
-  }
   setIpAddress(ipAddress) {
     this.ipAddress = ipAddress;
   }
@@ -71,7 +61,7 @@ export default class StackManager {
   // helpers
 
   makeOutputDir() {
-    return fs.ensureDir(this.getBuildPath());
+    return fs.ensureDir(buildFilesPath(this.getProjectPath()));
   }
   execDocker(...args) {
     const command = clean(args).join(' ');
@@ -79,13 +69,13 @@ export default class StackManager {
     return exec(`docker ${command}`);
   }
   execDockerCompose(...args) {
-    const file = dockerComposePath(this.getBuildPath());
+    const file = dockerComposePath(this.getProjectPath());
     const command = clean(args).join(' ');
 
     return exec(`docker-compose --file ${file} ${command}`);
   }
   spawnDockerCompose(args) {
-    const file = dockerComposePath(this.getBuildPath());
+    const file = dockerComposePath(this.getProjectPath());
     if (typeof args === 'string') args = [args];
     args = clean(args);
 
@@ -109,27 +99,27 @@ export default class StackManager {
     await this.loadLink();
     await this.makeOutputDir();
 
-    return Promise.all([
+    await Promise.all([
       this.buildDockerCompose(),
       ...this.buildDockerFiles(),
     ]);
+
+    return this.spawnDockerCompose('build');
   }
   async buildDockerCompose() {
     const target = this.getTarget();
-    const buildPath = this.getBuildPath();
     const ipAddress = this.getIpAddress();
     const projectPath = this.getProjectPath();
     const content = await this.stack.toDockerCompose(target, projectPath, ipAddress);
 
-    return saveYaml(dockerComposePath(buildPath), content);
+    return saveYaml(dockerComposePath(projectPath), content);
   }
   async buildDockerFile(service) {
     const target = this.getTarget();
-    const buildPath = this.getBuildPath();
     const projectPath = this.getProjectPath();
     const content = await service.toDockerFile(target, projectPath);
 
-    return saveFile(dockerFilePath(buildPath, service.name), content);
+    return saveFile(dockerFilePath(projectPath, service.name), content);
   }
   buildDockerFiles() {
     return this.stack.services.values().map((service) => {

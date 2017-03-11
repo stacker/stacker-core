@@ -1,4 +1,4 @@
-import { ejectFilePath, buildScriptPath } from '../utils/paths';
+import { ejectFilePath, buildScriptDir, buildScriptPath, dockerFileDir } from '../utils/paths';
 import { fileExists } from '../utils/storage';
 import { clean } from '../utils/misc';
 import StackServiceEnv from './service/StackServiceEnv';
@@ -30,8 +30,8 @@ export default class StackService {
     return clean({
       tty: true,
       build: {
-        context: '.',
-        dockerfile: `Dockerfile-${this.name}`,
+        context: projectPath,
+        dockerfile: dockerFileDir(this.name),
       },
       environment: this.env.toDockerCompose(),
       ports: this.ports.toDockerCompose(ipAddress),
@@ -40,12 +40,15 @@ export default class StackService {
     });
   }
   async toDockerFile(target, projectPath) {
+    const scriptDir = buildScriptDir(this.name);
     const scriptPath = buildScriptPath(projectPath, this.name);
     const lines = [`FROM ${this.image}`];
 
     if (await fileExists(scriptPath)) {
-      lines.push(`COPY ${scriptPath} .`);
-      lines.push(`RUN ./build-${this.name}.sh`);
+      const scriptName = `build-${this.name}.sh`;
+      lines.push(`COPY ${scriptDir} .`);
+      lines.push(`RUN chmod +x ./${scriptName}`);
+      lines.push(`RUN bash ./${scriptName}`);
     }
 
     if (target === 'prod') {

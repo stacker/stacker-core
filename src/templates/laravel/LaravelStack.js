@@ -27,7 +27,7 @@ export default class LaravelStack extends Stack {
   initLaravelService() {
     this.services.set('laravel', {
       image: 'stacker/laravel:latest',
-      shell: '/bin/zsh',
+      shell: '/bin/bash',
       env: {
         DB_DATABASE,
         DB_USERNAME,
@@ -41,25 +41,14 @@ export default class LaravelStack extends Stack {
       ],
     });
 
-    this.runnables.set('nginx-restart', {
-      label: 'Restart NGINX',
-      exec: 'service nginx restart',
+    this.ejectables.set('apache2.conf', {
+      label: 'Apache config',
+      path: '/etc/apache2/apache2.conf',
       service: 'laravel',
     });
-    this.runnables.set('restart-phpfpm', {
-      label: 'Restart PHP-FPM',
-      exec: 'service php7.1-fpm restart',
-      service: 'laravel',
-    });
-
-    this.ejectables.set('nginx.conf', {
-      label: 'NGINX config',
-      path: '/etc/nginx/nginx.conf',
-      service: 'laravel',
-    });
-    this.ejectables.set('php.ini', {
-      label: 'PHP config',
-      path: '/etc/php/fpm/php.ini',
+    this.ejectables.set('apache2-site.conf', {
+      label: 'Apache virtual host',
+      path: '/etc/apache2/site-available/000-default.conf',
       service: 'laravel',
     });
   }
