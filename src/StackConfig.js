@@ -1,7 +1,7 @@
 import path from 'path';
 
 import { clean } from './utils/misc';
-import { stackConfigPath } from './utils/paths';
+import { stackerConfigPath } from './utils/paths';
 import { loadYaml, saveYaml } from './utils/storage';
 
 
@@ -9,7 +9,7 @@ export default class StackConfig {
   static async load(projectPath) {
     try {
       const config = new StackConfig();
-      const result = await loadYaml(stackConfigPath(projectPath));
+      const result = await loadYaml(stackerConfigPath(projectPath));
 
       config.projectPath = projectPath;
 
@@ -36,7 +36,7 @@ export default class StackConfig {
   save(projectPath) {
     this.projectPath = projectPath;
 
-    return saveYaml(stackConfigPath(projectPath), clean({
+    return saveYaml(stackerConfigPath(projectPath), clean({
       stack: this.stack,
       options: this.options,
       extra: this.extra,

@@ -28,7 +28,6 @@
     "hostile": "^1.2.0",
     "js-yaml": "^3.8.1",
     "lodash": "^4.17.4",
-    "md5": "^2.2.1",
     "nedb-promise": "^2.0.1",
     "sudo-prompt": "^6.2.1"
   },

@@ -2,7 +2,7 @@ import fs from 'fs-promise';
 
 import LaravelStack from './templates/laravel/LaravelStack';
 import { saveYaml, saveFile, fileExists } from './utils/storage';
-import { defaultBuildPath, dockerComposePath, dockerFilePath, ejectFilePath } from './utils/paths';
+import { buildPath, dockerComposePath, dockerFilePath, ejectFilePath } from './utils/paths';
 import { exec, spawn, clean } from './utils/misc';
 import Links from './Links';
 
@@ -49,16 +49,6 @@ export default class StackManager {
   getProjectPath() {
     return this.config.projectPath;
   }
-  setBuildPath(buildPath) {
-    this.buildPath = buildPath;
-  }
-  getBuildPath() {
-    const projectPath = this.getProjectPath();
-
-    return this.buildPath
-      || this.config.buildPath
-      || defaultBuildPath(projectPath);
-  }
   setIpAddress(ipAddress) {
     this.ipAddress = ipAddress;
   }
@@ -71,7 +61,7 @@ export default class StackManager {
   // helpers
 
   makeOutputDir() {
-    return fs.ensureDir(this.getBuildPath());
+    return fs.ensureDir(buildPath(this.getProjectPath()));
   }
   execDocker(...args) {
     const command = clean(args).join(' ');
@@ -79,10 +69,19 @@ export default class StackManager {
     return exec(`docker ${command}`);
   }
   execDockerCompose(...args) {
-    const file = dockerComposePath(this.getBuildPath());
+    const file = dockerComposePath(this.getProjectPath());
     const command = clean(args).join(' ');
 
     return exec(`docker-compose --file ${file} ${command}`);
+  }
+  spawnDockerCompose(...args) {
+    const file = dockerComposePath(this.getProjectPath());
+    const child = spawn('docker-compose', clean(['--file', file, ...args]), { stdio: 'inherit' });
+
+    // cancel default SIGINT behaviour
+    process.on('SIGINT', () => {});
+
+    return child;
   }
   async listContainers(serviceName = null) {
     const stdout = await this.execDockerCompose('ps -q', serviceName);
@@ -96,27 +95,27 @@ export default class StackManager {
     await this.loadLink();
     await this.makeOutputDir();
 
-    return Promise.all([
+    await Promise.all([
       this.buildDockerCompose(),
       ...this.buildDockerFiles(),
     ]);
+
+    return this.spawnDockerCompose('build');
   }
   async buildDockerCompose() {
     const target = this.getTarget();
-    const buildPath = this.getBuildPath();
     const ipAddress = this.getIpAddress();
     const projectPath = this.getProjectPath();
     const content = await this.stack.toDockerCompose(target, projectPath, ipAddress);
 
-    return saveYaml(dockerComposePath(buildPath), content);
+    return saveYaml(dockerComposePath(projectPath), content);
   }
   async buildDockerFile(service) {
     const target = this.getTarget();
-    const buildPath = this.getBuildPath();
     const projectPath = this.getProjectPath();
     const content = await service.toDockerFile(target, projectPath);
 
-    return saveFile(dockerFilePath(buildPath, service.name), content);
+    return saveFile(dockerFilePath(projectPath, service.name), content);
   }
   buildDockerFiles() {
     return this.stack.services.values().map((service) => {
@@ -124,27 +123,36 @@ export default class StackManager {
     });
   }
 
-  // start, stop & restart
+  // up, down & start, stop & restart
 
-  start(serviceName = null) {
-    return this.execDockerCompose('up -d', serviceName);
+  up(detached = false) {
+    return this.spawnDockerCompose('up', detached && '-d');
   }
-  stop(serviceName = null) {
-    return this.execDockerCompose('down', serviceName);
+  down() {
+    return this.spawnDockerCompose('down');
+  }
+  start() {
+    return this.spawnDockerCompose('start');
+  }
+  stop() {
+    return this.spawnDockerCompose('stop');
   }
   restart(serviceName = null) {
-    return this.execDockerCompose('restart', serviceName);
+    return this.spawnDockerCompose('restart', serviceName);
   }
 
   // run
 
-  async run(runnableName) {
-    if (this.stack.runnables.has(runnableName)) {
-      const runnable = this.stack.runnables.get(runnableName);
-      return this.execDockerCompose('exec', runnable.service, runnable.exec);
-    }
+  run(runnableName) {
+    if (!this.stack.runnables.has(runnableName)) throw new Error('Runnable not found.');
 
-    throw new Error('Runnable not found.');
+    const runnable = this.stack.runnables.get(runnableName);
+    const serviceName = runnable.service;
+    const shell = this.stack.services.get(serviceName).shell;
+
+    if (!shell) throw new Error('This service does not have any shell.');
+
+    return this.spawnDockerCompose('exec', serviceName, shell, '-c', runnable.exec);
   }
 
   // eject
@@ -180,13 +188,10 @@ export default class StackManager {
   // shell
 
   shell(serviceName) {
-    const file = dockerComposePath(this.getBuildPath());
     const shell = this.stack.services.get(serviceName).shell;
 
-    if (shell) {
-      return spawn('docker-compose', ['--file', file, 'exec', serviceName, shell], { stdio: 'inherit' });
-    }
+    if (!shell) throw new Error('This service does not have any shell.');
 
-    throw new Error('This service does not have any shell.');
+    return this.spawnDockerCompose('exec', serviceName, shell);
   }
 }
