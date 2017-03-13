@@ -2,7 +2,7 @@ import fs from 'fs-promise';
 
 import LaravelStack from './templates/laravel/LaravelStack';
 import { saveYaml, saveFile, fileExists } from './utils/storage';
-import { buildFilesPath, dockerComposePath, dockerFilePath, ejectFilePath } from './utils/paths';
+import { buildPath, dockerComposePath, dockerFilePath, ejectFilePath } from './utils/paths';
 import { exec, spawn, clean } from './utils/misc';
 import Links from './Links';
 
@@ -61,7 +61,7 @@ export default class StackManager {
   // helpers
 
   makeOutputDir() {
-    return fs.ensureDir(buildFilesPath(this.getProjectPath()));
+    return fs.ensureDir(buildPath(this.getProjectPath()));
   }
   execDocker(...args) {
     const command = clean(args).join(' ');
@@ -74,16 +74,12 @@ export default class StackManager {
 
     return exec(`docker-compose --file ${file} ${command}`);
   }
-  spawnDockerCompose(args) {
+  spawnDockerCompose(...args) {
     const file = dockerComposePath(this.getProjectPath());
-    if (typeof args === 'string') args = [args];
-    args = clean(args);
+    const child = spawn('docker-compose', clean(['--file', file, ...args]), { stdio: 'inherit' });
 
-    const child = spawn('docker-compose', ['--file', file, ...args], { stdio: 'inherit' });
-
-    const exit = () => child.kill();
-    process.on('SIGINT', exit);
-    process.on('exit', exit);
+    // cancel default SIGINT behaviour
+    process.on('SIGINT', () => {});
 
     return child;
   }
@@ -130,7 +126,7 @@ export default class StackManager {
   // up, down & start, stop & restart
 
   up(detached = false) {
-    return this.spawnDockerCompose(['up', detached ? '-d' : null]);
+    return this.spawnDockerCompose('up', detached && '-d');
   }
   down() {
     return this.spawnDockerCompose('down');
@@ -142,25 +138,21 @@ export default class StackManager {
     return this.spawnDockerCompose('stop');
   }
   restart(serviceName = null) {
-    return this.spawnDockerCompose(['restart', serviceName]);
+    return this.spawnDockerCompose('restart', serviceName);
   }
 
   // run
 
   run(runnableName) {
-    if (this.stack.runnables.has(runnableName)) {
-      const runnable = this.stack.runnables.get(runnableName);
-      const serviceName = runnable.service;
-      const shell = this.stack.services.get(serviceName).shell;
+    if (!this.stack.runnables.has(runnableName)) throw new Error('Runnable not found.');
 
-      if (shell) {
-        return this.spawnDockerCompose(['exec', serviceName, shell, '-c', runnable.exec]);
-      }
+    const runnable = this.stack.runnables.get(runnableName);
+    const serviceName = runnable.service;
+    const shell = this.stack.services.get(serviceName).shell;
 
-      throw new Error('This service does not have any shell.');
-    }
+    if (!shell) throw new Error('This service does not have any shell.');
 
-    throw new Error('Runnable not found.');
+    return this.spawnDockerCompose('exec', serviceName, shell, '-c', runnable.exec);
   }
 
   // eject
@@ -198,10 +190,8 @@ export default class StackManager {
   shell(serviceName) {
     const shell = this.stack.services.get(serviceName).shell;
 
-    if (shell) {
-      return this.spawnDockerCompose(['exec', serviceName, shell]);
-    }
+    if (!shell) throw new Error('This service does not have any shell.');
 
-    throw new Error('This service does not have any shell.');
+    return this.spawnDockerCompose('exec', serviceName, shell);
   }
 }

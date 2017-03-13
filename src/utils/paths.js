@@ -10,40 +10,32 @@ export function homePath() {
 
 // stack paths
 
-export function stackFilesPath(projectPath) {
-  return path.join(projectPath, 'stacker');
-}
-
-export function buildFilesPath(projectPath) {
-  return path.join(stackFilesPath(projectPath), 'build');
-}
-
-export function dockerComposePath(projectPath) {
-  return path.join(buildFilesPath(projectPath), 'docker-compose.yaml');
-}
-
-export function dockerFilePath(projectPath, serviceName) {
-  return path.join(buildFilesPath(projectPath), `Dockerfile-${serviceName}`);
-}
-
-export function dockerFileDir(serviceName) {
-  return path.join('stacker', 'build', `Dockerfile-${serviceName}`);
-}
-
-export function stackConfigPath(projectPath) {
+export function stackerConfigPath(projectPath) {
   return path.join(projectPath, 'stacker.yaml');
 }
 
-export function buildScriptPath(projectPath, serviceName) {
-  return path.join(stackFilesPath(projectPath), `build-${serviceName}.sh`);
+export function stackerPath(projectPath) {
+  return path.join(projectPath, 'stacker');
 }
 
-export function buildScriptDir(serviceName) {
-  return path.join('stacker', `build-${serviceName}.sh`);
+export function buildPath(projectPath) {
+  return path.join(stackerPath(projectPath), 'build');
+}
+
+export function dockerComposePath(projectPath) {
+  return path.join(buildPath(projectPath), 'docker-compose.yaml');
+}
+
+export function dockerFilePath(projectPath, serviceName) {
+  return path.join(buildPath(projectPath), `Dockerfile-${serviceName}`);
+}
+
+export function buildScriptPath(projectPath, serviceName) {
+  return path.join(stackerPath(projectPath), `build-${serviceName}.sh`);
 }
 
 export function ejectFilePath(projectPath, filename) {
-  return path.join(stackFilesPath(projectPath), filename);
+  return path.join(stackerPath(projectPath), filename);
 }
 
 // misc paths
