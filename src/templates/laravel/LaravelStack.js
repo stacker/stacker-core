@@ -1,6 +1,7 @@
 import Stack from '../../Stack';
 
 
+const DB_HOST = 'database';
 const DB_DATABASE = 'laravel';
 const DB_USERNAME = 'stacker';
 const DB_PASSWORD = 'secret';
@@ -29,6 +30,7 @@ export default class LaravelStack extends Stack {
       image: 'stacker/laravel:latest',
       shell: '/bin/bash',
       env: {
+        DB_HOST,
         DB_DATABASE,
         DB_USERNAME,
         DB_PASSWORD,
@@ -48,7 +50,13 @@ export default class LaravelStack extends Stack {
     });
     this.ejectables.set('apache2-site.conf', {
       label: 'Apache virtual host',
-      path: '/etc/apache2/site-available/000-default.conf',
+      path: '/etc/apache2/site-available/app.conf',
+      service: 'laravel',
+    });
+
+    this.runnables.set('apache-reload', {
+      label: 'Reload Apache service',
+      exec: 'service apache2 reload',
       service: 'laravel',
     });
   }
@@ -75,6 +83,12 @@ export default class LaravelStack extends Stack {
 
     const laravelService = this.services.get('laravel');
     laravelService.env.set('DB_CONNECTION', 'mysql');
+
+    this.ejectables.set('my.cnf', {
+      label: 'MySQL config',
+      path: '/etc/mysql/my.cnf',
+      service: 'database',
+    });
   }
   initMariadbService() {
     this.services.set('database', {
@@ -90,6 +104,12 @@ export default class LaravelStack extends Stack {
 
     const laravelService = this.services.get('laravel');
     laravelService.env.set('DB_CONNECTION', 'mysql');
+
+    this.ejectables.set('my.cnf', {
+      label: 'MariaDB config',
+      path: '/etc/mysql/my.cnf',
+      service: 'database',
+    });
   }
   initPostgresService() {
     this.services.set('database', {

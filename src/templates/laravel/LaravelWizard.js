@@ -3,7 +3,7 @@ function getQuestions() {
     {
       type: 'list',
       name: 'database',
-      message: 'Alege DB-ul',
+      message: 'Choose DB',
       choices: [
         { name: 'MySQL', value: 'mysql' },
         { name: 'MariaDB', value: 'mariadb' },
@@ -13,7 +13,7 @@ function getQuestions() {
     {
       type: 'checkbox',
       name: 'addons',
-      message: 'Alege addon-urile',
+      message: 'Select addons',
       choices: [
         { name: 'Redis', value: 'redis' },
         { name: 'Memcached', value: 'memcached' },

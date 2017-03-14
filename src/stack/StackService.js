@@ -28,7 +28,7 @@ export default class StackService {
     if (data.volumes) this.volumes.merge(data.volumes);
     if (data.networks) this.networks.merge(data.networks);
   }
-  toDockerCompose(target, projectPath, ipAddress) {
+  toDockerCompose(target, projectName, projectPath, ipAddress) {
     return clean({
       tty: true,
       build: {
@@ -39,6 +39,9 @@ export default class StackService {
       ports: this.ports.toDockerCompose(ipAddress),
       volumes: this.volumes.toDockerCompose(target, projectPath),
       networks: this.networks.toDockerCompose(),
+      labels: {
+        stacker: `${projectName}.${this.name}`,
+      },
     });
   }
   async toDockerFile(target, projectPath) {
