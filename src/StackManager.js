@@ -90,7 +90,7 @@ export default class StackManager {
   async listRunningContainers(serviceName) {
     const label = `${this.getProjectName()}.${serviceName}`;
     const stdout = await this.execDocker('ps', [
-      '-q',
+      '--quiet',
       '--filter', `label=stacker=${label}`,
       '--filter', 'status=running',
     ]);
