@@ -67,24 +67,20 @@ export default class StackManager {
   makeOutputDir() {
     return fs.ensureDir(buildPath(this.getProjectPath()));
   }
-  execDocker(...args) {
-    const command = clean(args).join(' ');
-
-    return exec(`docker ${command}`);
-  }
-  execDockerCompose(...args) {
-    const file = dockerComposePath(this.getProjectPath());
-    const command = clean(args).join(' ');
-
-    return exec(`docker-compose -f ${file} -p ${this.getProjectName()} ${command}`);
-  }
-  spawnDockerCompose(...args) {
-    const file = dockerComposePath(this.getProjectPath());
-    const child = spawn('docker-compose', clean([
-      '-f', file,
-      '-p', this.getProjectName(),
+  execDocker(subcommand, args) {
+    return exec('docker', [
+      subcommand,
       ...args,
-    ]), { stdio: 'inherit' });
+    ]);
+  }
+  spawnDockerCompose(subcommand, args) {
+    const file = dockerComposePath(this.getProjectPath());
+    const child = spawn('docker-compose', [
+      '--file', file,
+      '--project-name', this.getProjectName(),
+      subcommand,
+      ...args,
+    ], { stdio: 'inherit' });
 
     // cancel default SIGINT behaviour
     process.on('SIGINT', () => {});
@@ -93,7 +89,11 @@ export default class StackManager {
   }
   async listRunningContainers(serviceName) {
     const label = `${this.getProjectName()}.${serviceName}`;
-    const stdout = await this.execDocker('ps -q', '--filter', `label=stacker=${label}`, '--filter', 'status=running');
+    const stdout = await this.execDocker('ps', clean([
+      '-q',
+      '--filter', `label=stacker=${label}`,
+      '--filter', 'status=running',
+    ]));
 
     return stdout.trim().split('\n').filter(line => line !== '');
   }
@@ -136,7 +136,7 @@ export default class StackManager {
   // up, down & start, stop & restart
 
   up(detached = false) {
-    return this.spawnDockerCompose('up', detached ? '-d' : null);
+    return this.spawnDockerCompose('up', clean([detached ? '-d' : null]));
   }
   down() {
     return this.spawnDockerCompose('down');
@@ -148,7 +148,7 @@ export default class StackManager {
     return this.spawnDockerCompose('stop');
   }
   restart(serviceName = null) {
-    return this.spawnDockerCompose('restart', serviceName);
+    return this.spawnDockerCompose('restart', clean([serviceName]));
   }
 
   // run
@@ -165,7 +165,7 @@ export default class StackManager {
 
     if (!containers.length) throw new Error('You need to start the project first. Run "stacker up".');
 
-    return this.spawnDockerCompose('exec', runnable.service, shell, '-c', runnable.exec);
+    return this.spawnDockerCompose('exec', clean([runnable.service, shell, '-c', runnable.exec]));
   }
 
   // shell
@@ -179,7 +179,7 @@ export default class StackManager {
 
     if (!containers.length) throw new Error('You need to start the project first. Run "stacker up".');
 
-    return this.spawnDockerCompose('exec', serviceName, shell);
+    return this.spawnDockerCompose('exec', clean([serviceName, shell]));
   }
 
   // eject
@@ -205,6 +205,9 @@ export default class StackManager {
     const projectPath = this.getProjectPath();
     const localPath = ejectFilePath(projectPath, localFile);
 
-    return this.execDocker(`cp --follow-link ${container}:${remotePath} ${localPath}`);
+    return this.execDocker('cp', clean([
+      '--follow-link',
+      `${container}:${remotePath} ${localPath}`,
+    ]));
   }
 }

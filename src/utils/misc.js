@@ -18,9 +18,9 @@ export function clean(input) {
   return input;
 }
 
-export function exec(command, options = {}) {
+export function exec(command, args = [], options = {}) {
   return new Promise((resolve, reject) => {
-    cp.exec(command, options, (error, stdout, stderr) => {
+    cp.exec(`${command} ${args.join(' ')}`, options, (error, stdout, stderr) => {
       if (error) reject(error, stderr);
       resolve(stdout, stderr);
     });
