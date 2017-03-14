@@ -2,6 +2,7 @@ import md5 from 'md5';
 import fs from 'fs-promise';
 
 import LaravelStack from './templates/laravel/LaravelStack';
+import WordpressStack from './templates/wordpress/WordpressStack';
 import { saveYaml, saveFile, fileExists } from './utils/storage';
 import { buildPath, dockerComposePath, dockerFilePath, ejectFilePath } from './utils/paths';
 import { exec, spawn, clean } from './utils/misc';
@@ -23,6 +24,9 @@ export default class StackManager {
   loadStack() {
     if (this.config.stack === 'laravel') {
       this.stack = new LaravelStack(this.config.options);
+    }
+    if (this.config.stack === 'wordpress') {
+      this.stack = new WordpressStack(this.config.options);
     }
     if (this.config.extra) {
       this.stack.merge(this.config.extra);
