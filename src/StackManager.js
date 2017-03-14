@@ -89,11 +89,11 @@ export default class StackManager {
   }
   async listRunningContainers(serviceName) {
     const label = `${this.getProjectName()}.${serviceName}`;
-    const stdout = await this.execDocker('ps', clean([
+    const stdout = await this.execDocker('ps', [
       '-q',
       '--filter', `label=stacker=${label}`,
       '--filter', 'status=running',
-    ]));
+    ]);
 
     return stdout.trim().split('\n').filter(line => line !== '');
   }
@@ -165,7 +165,7 @@ export default class StackManager {
 
     if (!containers.length) throw new Error('You need to start the project first. Run "stacker up".');
 
-    return this.spawnDockerCompose('exec', clean([runnable.service, shell, '-c', runnable.exec]));
+    return this.spawnDockerCompose('exec', [runnable.service, shell, '-c', runnable.exec]);
   }
 
   // shell
@@ -179,7 +179,7 @@ export default class StackManager {
 
     if (!containers.length) throw new Error('You need to start the project first. Run "stacker up".');
 
-    return this.spawnDockerCompose('exec', clean([serviceName, shell]));
+    return this.spawnDockerCompose('exec', [serviceName, shell]);
   }
 
   // eject
@@ -205,9 +205,10 @@ export default class StackManager {
     const projectPath = this.getProjectPath();
     const localPath = ejectFilePath(projectPath, localFile);
 
-    return this.execDocker('cp', clean([
+    return this.execDocker('cp', [
       '--follow-link',
-      `${container}:${remotePath} ${localPath}`,
-    ]));
+      `${container}:${remotePath}`,
+      localPath,
+    ]);
   }
 }
