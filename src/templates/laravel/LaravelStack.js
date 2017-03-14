@@ -21,6 +21,7 @@ export default class LaravelStack extends Stack {
   init() {
     this.initLaravelService();
     this.initDatabaseService();
+    this.initPhpMyAdminService();
     this.initRedisService();
     this.initMemcachedService();
     this.initBeanstalkdService();
@@ -124,6 +125,22 @@ export default class LaravelStack extends Stack {
 
     const laravelService = this.services.get('laravel');
     laravelService.env.set('DB_CONNECTION', 'pgsql');
+  }
+  initPhpMyAdminService() {
+    if (this.options.phpmyadmin === false) return;
+
+    this.services.set('phpmyadmin', {
+      image: 'phpmyadmin/phpmyadmin:latest',
+      shell: '/bin/bash',
+      env: {
+        PMA_HOST: DB_HOST,
+        PMA_USER: DB_USERNAME,
+        PMA_PASSWORD: DB_PASSWORD,
+      },
+      ports: {
+        9999: 80,
+      },
+    });
   }
   initRedisService() {
     if (this.options.redis === true) {

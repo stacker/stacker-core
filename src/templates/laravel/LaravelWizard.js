@@ -11,6 +11,11 @@ function getQuestions() {
       ],
     },
     {
+      type: 'confirm',
+      name: 'phpmyadmin',
+      message: 'Do you want phpMyAdmin?',
+    },
+    {
       type: 'checkbox',
       name: 'addons',
       message: 'Select addons',
@@ -26,6 +31,7 @@ function getQuestions() {
 function makeOptions(answers) {
   const options = {
     database: answers.database,
+    phpmyadmin: answers.phpmyadmin,
   };
 
   if (answers.addons.includes('redis')) options.redis = true;
