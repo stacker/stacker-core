@@ -59,6 +59,11 @@ export default class LaravelStack extends Stack {
       exec: 'service apache2 reload',
       service: 'laravel',
     });
+    this.runnables.set('phpunit', {
+      label: 'Run PHPUnit suite',
+      exec: './vendor/bin/phpunit; exit $?',
+      service: 'laravel',
+    });
   }
   initDatabaseService() {
     if (this.options.database === 'mysql') {
