@@ -1,42 +1,63 @@
-import sudo from 'sudo-prompt';
+import os from 'os';
+import dns from 'dns';
 
 import { localBinaryPath } from './utils/paths';
+import { exec } from './utils/misc';
 
 
 const hostilePath = localBinaryPath('hostile');
 
-function exec(commands) {
+function sudoExecAll(commands) {
+  // TODO: escape the content inside quotes
+  return exec('sudo sh', ['-c', `"${commands.join(' && ')}"`]);
+}
+
+function create(ipAddress, host) {
+  return sudoExecAll([
+    `ifconfig lo0 alias ${ipAddress}`,
+    `${hostilePath} set ${ipAddress} ${host}`,
+  ]);
+}
+
+function update(ipAddress, oldHost, newHost) {
+  return sudoExecAll([
+    `${hostilePath} remove ${oldHost}`,
+    `${hostilePath} set ${ipAddress} ${newHost}`,
+  ]);
+}
+
+function remove(ipAddress, host) {
+  return sudoExecAll([
+    `${hostilePath} remove ${host}`,
+    `ifconfig lo0 -alias ${ipAddress}`,
+  ]);
+}
+
+function ipAddressExists(ipAddress) {
+  const interfaces = os.networkInterfaces();
+  const result = interfaces.lo0.find(alias => alias.address === ipAddress);
+
+  return Promise.resolve(!!result);
+}
+
+function hostExists(ipAddress, host) {
   return new Promise((resolve, reject) => {
-    sudo.exec(`sh -c "${commands.join('; ')}"`, { name: 'Stacker' }, (error, stdout, stderr) => {
-      if (error) reject(error, stderr);
-      resolve(stdout, stderr);
+    dns.lookup(host, (error, result) => {
+      if (error) reject(error);
+      resolve(result === ipAddress);
     });
   });
 }
 
-function create(ip, host) {
-  return exec([
-    `ifconfig lo0 alias ${ip}`,
-    `${hostilePath} set ${ip} ${host}`,
-  ]);
-}
+async function ensure(ipAddress, host) {
+  if (await ipAddressExists(ipAddress) && await hostExists(ipAddress, host)) return;
 
-function update(ip, oldHost, newHost) {
-  return exec([
-    `${hostilePath} remove ${oldHost}`,
-    `${hostilePath} set ${ip} ${newHost}`,
-  ]);
-}
-
-function remove(ip, host) {
-  return exec([
-    `${hostilePath} remove ${host}`,
-    `ifconfig lo0 -alias ${ip}`,
-  ]);
+  return create(ipAddress, host);
 }
 
 export default {
   create,
   update,
   remove,
+  ensure,
 };

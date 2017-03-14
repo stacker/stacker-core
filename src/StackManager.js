@@ -6,6 +6,7 @@ import { saveYaml, saveFile, fileExists } from './utils/storage';
 import { buildPath, dockerComposePath, dockerFilePath, ejectFilePath } from './utils/paths';
 import { exec, spawn, clean } from './utils/misc';
 import Links from './Links';
+import Hosts from './Hosts';
 
 
 const DEFAULT_TARGET = 'dev';
@@ -67,13 +68,13 @@ export default class StackManager {
   makeOutputDir() {
     return fs.ensureDir(buildPath(this.getProjectPath()));
   }
-  execDocker(subcommand, args) {
+  execDocker(subcommand, args = []) {
     return exec('docker', [
       subcommand,
       ...args,
     ]);
   }
-  spawnDockerCompose(subcommand, args) {
+  spawnDockerCompose(subcommand, args = []) {
     const file = dockerComposePath(this.getProjectPath());
     const child = spawn('docker-compose', [
       '--file', file,
@@ -97,11 +98,17 @@ export default class StackManager {
 
     return stdout.trim().split('\n').filter(line => line !== '');
   }
+  ensureNetwork() {
+    if (!this.link) return;
+
+    return Hosts.ensure(this.link.ipAddress, this.link.host);
+  }
 
   // build
 
   async build() {
     await this.loadLink();
+    await this.ensureNetwork();
     await this.makeOutputDir();
 
     await Promise.all([
