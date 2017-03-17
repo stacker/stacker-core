@@ -22,7 +22,6 @@ function getQuestions() {
       choices: [
         { name: 'Redis', value: 'redis' },
         { name: 'Memcached', value: 'memcached' },
-        { name: 'Beanstalk', value: 'beanstalkd' },
       ],
     },
   ];
@@ -36,7 +35,6 @@ function makeOptions(answers) {
 
   if (answers.addons.includes('redis')) options.redis = true;
   if (answers.addons.includes('memcached')) options.memcached = true;
-  if (answers.addons.includes('beanstalkd')) options.beanstalkd = true;
 
   return options;
 }

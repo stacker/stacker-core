@@ -24,7 +24,6 @@ export default class LaravelStack extends Stack {
     this.initPhpMyAdminService();
     this.initRedisService();
     this.initMemcachedService();
-    this.initBeanstalkdService();
   }
   initLaravelService() {
     this.services.set('laravel', {
@@ -79,6 +78,9 @@ export default class LaravelStack extends Stack {
     this.services.set('database', {
       image: 'mysql:latest',
       shell: '/bin/bash',
+      volumes: [
+        'database_data:/var/lib/mysql',
+      ],
       env: {
         MYSQL_ROOT_PASSWORD: 'root',
         MYSQL_DATABASE: DB_DATABASE,
@@ -89,17 +91,25 @@ export default class LaravelStack extends Stack {
 
     const laravelService = this.services.get('laravel');
     laravelService.env.set('DB_CONNECTION', 'mysql');
+    laravelService.env.set('DB_PORT', 3306);
 
     this.ejectables.set('my.cnf', {
       label: 'MySQL config',
       path: '/etc/mysql/my.cnf',
       service: 'database',
     });
+
+    this.volumes.set('database_data', {
+      driver: 'local',
+    });
   }
   initMariadbService() {
     this.services.set('database', {
       image: 'mariadb:latest',
       shell: '/bin/bash',
+      volumes: [
+        'database_data:/var/lib/mysql',
+      ],
       env: {
         MYSQL_ROOT_PASSWORD: 'root',
         MYSQL_DATABASE: DB_DATABASE,
@@ -110,17 +120,25 @@ export default class LaravelStack extends Stack {
 
     const laravelService = this.services.get('laravel');
     laravelService.env.set('DB_CONNECTION', 'mysql');
+    laravelService.env.set('DB_PORT', 3306);
 
     this.ejectables.set('my.cnf', {
       label: 'MariaDB config',
       path: '/etc/mysql/my.cnf',
       service: 'database',
     });
+
+    this.volumes.set('database_data', {
+      driver: 'local',
+    });
   }
   initPostgresService() {
     this.services.set('database', {
       image: 'postgres:latest',
       shell: '/bin/bash',
+      volumes: [
+        'database_data:/var/lib/postgresql/data',
+      ],
       env: {
         POSTGRES_DB: DB_DATABASE,
         POSTGRES_USER: DB_USERNAME,
@@ -130,6 +148,11 @@ export default class LaravelStack extends Stack {
 
     const laravelService = this.services.get('laravel');
     laravelService.env.set('DB_CONNECTION', 'pgsql');
+    laravelService.env.set('DB_PORT', 5432);
+
+    this.volumes.set('database_data', {
+      driver: 'local',
+    });
   }
   initPhpMyAdminService() {
     if (this.options.phpmyadmin === false) return;
@@ -152,10 +175,17 @@ export default class LaravelStack extends Stack {
       this.services.set('redis', {
         image: 'redis:latest',
         shell: '/bin/bash',
+        volumes: [
+          'redis_data:/data',
+        ],
       });
 
       const laravelService = this.services.get('laravel');
       laravelService.env.set('REDIS_HOST', 'redis');
+
+      this.volumes.set('redis_data', {
+        driver: 'local',
+      });
     }
   }
   initMemcachedService() {
@@ -164,18 +194,6 @@ export default class LaravelStack extends Stack {
         image: 'memcached:latest',
         shell: '/bin/bash',
       });
-    }
-  }
-  initBeanstalkdService() {
-    if (this.options.beanstalkd === true) {
-      this.services.set('beanstalkd', {
-        image: 'schickling/beanstalkd:latest',
-        shell: '/bin/bash',
-      });
-
-      const laravelService = this.services.get('laravel');
-      laravelService.env.set('QUEUE_DRIVER', 'beanstalkd');
-      laravelService.env.set('QUEUE_HOST', 'beanstalkd');
     }
   }
 }
