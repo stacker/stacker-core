@@ -6,20 +6,20 @@ This template supports Laravel 5+.
 
 - create the `stacker.yaml` file using the automated wizard
 
-```
-stacker init laravel
-```
+  ```
+  $ stacker init laravel
+  ```
 
 - or, create the `stacker.yaml` file manually with the following content
 
-```
-stack: laravel
-options:
-  database: mysql
-  phpmyadmin: true
-  redis: true
-  memcached: true
-```
+  ```
+  stack: laravel
+  options:
+    database: mysql
+    phpmyadmin: true
+    redis: true
+    memcached: true
+  ```
 
 ## Options
 

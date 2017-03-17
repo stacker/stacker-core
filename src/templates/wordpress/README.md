@@ -6,18 +6,18 @@ This template supports Wordpress 4+.
 
 - create the `stacker.yaml` file using the automated wizard
 
-```
-stacker init wordpress
-```
+  ```
+  $ stacker init wordpress
+  ```
 
 - or, create the `stacker.yaml` file manually with the following content
 
-```
-stack: wordpress
-options:
-  database: mysql
-  phpmyadmin: true
-```
+  ```
+  stack: wordpress
+  options:
+    database: mysql
+    phpmyadmin: true
+  ```
 
 ## Options
 
