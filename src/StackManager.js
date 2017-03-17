@@ -5,7 +5,7 @@ import LaravelStack from './templates/laravel/LaravelStack';
 import WordpressStack from './templates/wordpress/WordpressStack';
 import { saveYaml, saveFile, fileExists } from './utils/storage';
 import { buildPath, dockerComposePath, dockerFilePath, ejectFilePath } from './utils/paths';
-import { exec, spawn, clean } from './utils/misc';
+import { exec, gracefulSpawn, clean } from './utils/misc';
 import Links from './Links';
 import Hosts from './Hosts';
 
@@ -79,18 +79,12 @@ export default class StackManager {
     ]);
   }
   spawnDockerCompose(subcommand, args = []) {
-    const file = dockerComposePath(this.getProjectPath());
-    const child = spawn('docker-compose', [
-      '--file', file,
+    return gracefulSpawn('docker-compose', [
+      '--file', dockerComposePath(this.getProjectPath()),
       '--project-name', this.getProjectName(),
       subcommand,
       ...args,
-    ], { stdio: 'inherit' });
-
-    // cancel default SIGINT behaviour
-    process.on('SIGINT', () => {});
-
-    return child;
+    ]);
   }
   async listRunningContainers(serviceName) {
     const label = `${this.getProjectName()}.${serviceName}`;
