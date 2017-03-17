@@ -52,6 +52,9 @@ export default class WordpressStack extends Stack {
     this.services.set('database', {
       image: 'mysql:latest',
       shell: '/bin/bash',
+      volumes: [
+        'database_data:/var/lib/mysql',
+      ],
       env: {
         MYSQL_ROOT_PASSWORD: 'root',
         MYSQL_DATABASE: DB_DATABASE,
@@ -65,11 +68,18 @@ export default class WordpressStack extends Stack {
       path: '/etc/mysql/my.cnf',
       service: 'database',
     });
+
+    this.volumes.set('database_data', {
+      driver: 'local',
+    });
   }
   initMariadbService() {
     this.services.set('database', {
       image: 'mariadb:latest',
       shell: '/bin/bash',
+      volumes: [
+        'database_data:/var/lib/mysql',
+      ],
       env: {
         MYSQL_ROOT_PASSWORD: 'root',
         MYSQL_DATABASE: DB_DATABASE,
@@ -82,6 +92,10 @@ export default class WordpressStack extends Stack {
       label: 'MariaDB config',
       path: '/etc/mysql/my.cnf',
       service: 'database',
+    });
+
+    this.volumes.set('database_data', {
+      driver: 'local',
     });
   }
   initPhpMyAdminService() {
