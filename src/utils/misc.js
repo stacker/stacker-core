@@ -28,5 +28,27 @@ export function exec(command, args = [], options = {}) {
 }
 
 export function spawn(command, args = [], options = {}) {
-  return cp.spawn(command, args, options);
+  const child = cp.spawn(command, args, options);
+
+  return new Promise((resolve, reject) => {
+    child.on('error', () => reject());
+    child.on('close', code => resolve(code));
+  });
+}
+
+export async function gracefulSpawn(command, args = []) {
+  let shouldExit = false;
+  const hijack = () => { shouldExit = true; };
+
+  // hijack SIGINT behaviour
+  process.addListener('SIGINT', hijack);
+
+  const code = await spawn(command, args, { stdio: 'inherit' });
+
+  if (shouldExit) process.exit(code);
+
+  // restore SIGINT behaviour
+  process.removeListener('SIGINT', hijack);
+
+  return code;
 }
