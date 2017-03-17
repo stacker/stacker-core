@@ -1,24 +1,16 @@
 # Laravel Stacker Template
 
+This template supports Laravel 5+.
+
 ## Usage
 
-A Stacker Template can be used in two ways:
-
-### 1. Generate the stacker file with Stacker CLI
-
-Run `stacker init` in your project's directory, then configure your options.
-
-### 2. Create the stacker file manually
-
-Create your `stacker.yaml` file in your project's directory.
-
-Examples:
+- create the `stacker.yaml` file using the automated wizard
 
 ```
-stack: laravel
-options:
-  database: mariadb
+stacker init laravel
 ```
+
+- or, create the `stacker.yaml` file manually with the following content
 
 ```
 stack: laravel
@@ -29,8 +21,6 @@ options:
   memcached: true
 ```
 
----
-
 ## Options
 
 | name | description | value | default |
@@ -40,8 +30,6 @@ options:
 | redis | include Redis | boolean | `false` |
 | memcached | include Memcached | boolean | `false` |
 
----
-
 ## Ejectables
 
 | name | description | service | remote file |
@@ -50,7 +38,7 @@ options:
 | `apache2-site.conf` | Apache virtual host | `laravel` | `/etc/apache2/site-available/app.conf` |
 | `my.cnf` | MySQL/MariaDB config | `database` | `/etc/mysql/my.cnf` |
 
----
+To eject a file you can execute `stacker eject [name]` in your terminal.
 
 ## Runnables
 
@@ -58,3 +46,5 @@ options:
 | ---- | ----------- | ------- | ---- |
 | `apache-reload` | Reload Apache service | `laravel` | `service apache2 reload` |
 | `phpunit` | Run PHPUnit suite | `laravel` | `./vendor/bin/phpunit; exit $?` |
+
+To run a command you can execute `stacker run [name]` in your terminal.

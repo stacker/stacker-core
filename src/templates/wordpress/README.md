@@ -1,24 +1,16 @@
 # Wordpress Stacker Template
 
+This template supports Wordpress 4+.
+
 ## Usage
 
-A Stacker Template can be used in two ways:
-
-### 1. Generate the stacker file with Stacker CLI
-
-Run `stacker init` in your project's directory, then configure your options.
-
-### 2. Create the stacker file manually
-
-Create your `stacker.yaml` file in your project's directory.
-
-Examples:
+- create the `stacker.yaml` file using the automated wizard
 
 ```
-stack: wordpress
-options:
-  database: mariadb
+stacker init wordpress
 ```
+
+- or, create the `stacker.yaml` file manually with the following content
 
 ```
 stack: wordpress
@@ -27,8 +19,6 @@ options:
   phpmyadmin: true
 ```
 
----
-
 ## Options
 
 | name | description | value | default |
@@ -36,10 +26,10 @@ options:
 | database | database type | string: `mysql, mariadb` | `mariadb`|
 | phpmyadmin | include PHPMyAdmin | boolean | `false` |
 
----
-
 ## Ejectables
 
 | name | description | service | remote file |
 | ---- | ----------- | ------- | ----------- |
 | `my.cnf` | MySQL/MariaDB config | `database` | `/etc/mysql/my.cnf` |
+
+To eject a file you can execute `stacker eject [name]` in your terminal.
