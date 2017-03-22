@@ -1,7 +1,7 @@
 {
   "name": "stacker-core",
   "repository": "StackerHQ/stacker-core",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "license": "MIT",
   "description": "Stacker Core",
   "keywords": [
