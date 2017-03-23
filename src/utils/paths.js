@@ -43,7 +43,3 @@ export function ejectFilePath(projectPath, filename) {
 export function linksDbPath() {
   return path.join(homePath(), 'links.json');
 }
-
-export function localBinaryPath(binaryName) {
-  return path.join(__dirname, '../../node_modules/.bin', binaryName);
-}
