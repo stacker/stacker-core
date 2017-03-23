@@ -1,11 +1,12 @@
 import os from 'os';
 import dns from 'dns';
+import path from 'path';
 
-import { localBinaryPath } from './utils/paths';
 import { exec } from './utils/misc';
 
 
-const hostilePath = localBinaryPath('hostile');
+const hostilePath = path.dirname(require.resolve('hostile'));
+const hostileBinary = path.join(hostilePath, 'bin/cmd.js');
 
 function sudoExecAll(commands) {
   // TODO: escape the content inside quotes
@@ -15,20 +16,20 @@ function sudoExecAll(commands) {
 function create(ipAddress, host) {
   return sudoExecAll([
     `ifconfig lo0 alias ${ipAddress}`,
-    `${hostilePath} set ${ipAddress} ${host}`,
+    `${hostileBinary} set ${ipAddress} ${host}`,
   ]);
 }
 
 function update(ipAddress, oldHost, newHost) {
   return sudoExecAll([
-    `${hostilePath} remove ${oldHost}`,
-    `${hostilePath} set ${ipAddress} ${newHost}`,
+    `${hostileBinary} remove ${oldHost}`,
+    `${hostileBinary} set ${ipAddress} ${newHost}`,
   ]);
 }
 
 function remove(ipAddress, host) {
   return sudoExecAll([
-    `${hostilePath} remove ${host}`,
+    `${hostileBinary} remove ${host}`,
     `ifconfig lo0 -alias ${ipAddress}`,
   ]);
 }
