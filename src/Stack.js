@@ -26,7 +26,7 @@ export default class Stack {
     await this.ejectables.findEjectedFiles(projectPath);
 
     return clean({
-      version: '3',
+      version: '2',
       services: this.services.toDockerCompose(target, projectName, projectPath, ipAddress),
       networks: this.networks.toDockerCompose(),
       volumes: this.volumes.toDockerCompose(),
