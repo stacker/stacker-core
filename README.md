@@ -24,5 +24,5 @@ There are a few predefined NPM scripts available. Run them by typing this in you
 
 ## Templates
 
-- [Laravel Template](https://github.com/stacker/stacker-core/blob/develop/src/templates/laravel/README.md)
-- [Wordpress Template](https://github.com/stacker/stacker-core/blob/develop/src/templates/laravel/README.md)
+- [Laravel Template](src/templates/laravel/README.md)
+- [Wordpress Template](src/templates/laravel/README.md)
